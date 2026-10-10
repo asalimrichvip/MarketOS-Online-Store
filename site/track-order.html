@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#174f3e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="./store-manifest.webmanifest">
+  <meta name="description" content="تابع حالة طلب السوبرماركت من الموبايل">
+  <title>تتبع طلبك | MarketOS</title>
+  <link rel="stylesheet" href="./track-order.css">
+</head>
+<body>
+  <div class="track-shell">
+    <header class="track-header">
+      <a href="./storefront.html" class="track-brand"><span class="track-logo">د</span><span><strong id="trackStoreName">متجر البقالة</strong><small>متابعـة الطلب والتوصيل</small></span></a>
+      <a href="./storefront.html" class="back-to-shop">المتجر <span>←</span></a>
+    </header>
+
+    <main class="track-main">
+      <div class="track-intro"><span class="intro-kicker"><i></i> ORDER TRACKING</span><h1>طلبك فين دلوقتي؟</h1><p>اكتب رقم الطلب ورقم الموبايل اللي سجلت بيه، وهتشوف آخر حالة مؤكدة من المتجر.</p></div>
+
+      <form id="trackForm" class="lookup-card">
+        <label>رقم الطلب<input id="orderNumber" name="orderNumber" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" maxlength="40" placeholder="WEB-20261010-00001" required></label>
+        <label>رقم الموبايل<input id="trackingPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="01xxxxxxxxx" required></label>
+        <button id="trackButton" class="track-submit" type="submit"><span>تتبع الطلب</span><strong>←</strong></button>
+        <p class="lookup-hint">رقم الطلب موجود في رسالة تأكيد الطلب اللي ظهرت بعد ما ضغطت «تأكيد الطلب».</p>
+        <div id="trackMessage" class="track-message" role="status" aria-live="polite"></div>
+      </form>
+
+      <section id="trackingResult" class="tracking-result hidden" aria-live="polite">
+        <div class="result-heading"><div><span class="result-eyebrow">تحديث الطلب</span><h2 id="trackedOrderNumber">—</h2></div><span id="trackedStatusBadge" class="tracked-status">—</span></div>
+        <div class="delivery-status-card"><div class="delivery-status-icon" id="deliveryStatusIcon">✓</div><div><span>حالة طلبك الحالية</span><h3 id="deliveryStatusTitle">جاري التجهيز</h3><p id="deliveryStatusDescription">هنحدّث الحالة أول ما يحصل أي تغيير من فريق المتجر.</p></div></div>
+        <div id="statusTimeline" class="status-timeline"></div>
+        <div class="tracking-summary"><div><span>قيمة المنتجات</span><strong id="trackedSubtotal">—</strong></div><div><span>الضريبة</span><strong id="trackedTax">—</strong></div><div><span>التوصيل</span><strong id="trackedDelivery">—</strong></div><div class="tracking-total"><span>الإجمالي</span><strong id="trackedTotal">—</strong></div></div>
+        <div class="tracking-bottom"><span id="trackingUpdatedAt">آخر تحديث —</span><button id="refreshTracking" type="button">تحديث الحالة ↻</button></div>
+      </section>
+
+      <div class="support-note"><span>💬</span><p>محتاج مساعدة؟ اتواصل مع المتجر من رقم خدمة العملاء الظاهر في صفحة التسوق، لو كان متاحًا.</p></div>
+    </main>
+
+    <footer class="track-footer"><span>MarketOS · Online Orders</span><a href="./storefront.html">الرجوع للتسوق</a></footer>
+  </div>
+  <script src="./track-order.js" defer></script>
+  <script src="./store-pwa-register.js" defer></script>
+</body>
+</html>
