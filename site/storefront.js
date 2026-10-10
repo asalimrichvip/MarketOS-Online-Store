@@ -45,7 +45,97 @@ function unitLabel(unit) {
   return labels[normalized] || raw || 'قطعة';
 }
 
+function isAppsScriptApi() {
+  return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:$|\?)/i.test(API_BASE);
+}
+
+function appsScriptJsonp(action, params = {}) {
+  return new Promise((resolve, reject) => {
+    if (!isAppsScriptApi()) {
+      reject(new Error('حط رابط Google Apps Script المنشور في إعداد api.'));
+      return;
+    }
+    const callback = '__mos_jsonp_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    let settled = false;
+    const cleanup = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      script.remove();
+      try { delete window[callback]; } catch (_) { window[callback] = undefined; }
+    };
+    window[callback] = data => { cleanup(); resolve(data); };
+    const url = new URL(API_BASE);
+    url.searchParams.set('action', action);
+    url.searchParams.set('callback', callback);
+    url.searchParams.set('_', String(Date.now()));
+    Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, String(value ?? '')));
+    const timer = setTimeout(() => { cleanup(); reject(new Error('انتهت مهلة الاتصال بخادم Google. جرّب تحديث الصفحة.')); }, 18000);
+    script.async = true;
+    script.onerror = () => { cleanup(); reject(new Error('تعذر الاتصال بخادم Google Apps Script. راجع رابط النشر وصلاحية الوصول.')); };
+    script.src = url.toString();
+    document.head.appendChild(script);
+  });
+}
+
+function waitMs(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+async function submitAppsScriptOrder(payload) {
+  if (!isAppsScriptApi()) throw new Error('رابط Google Apps Script غير مضبوط.');
+  const token = String(payload.trackingToken || payload.idempotencyKey || '');
+  if (!token) throw new Error('رمز الطلب مفقود. حدّث الصفحة وحاول مرة أخرى.');
+  let frame = null;
+  let form = null;
+  try {
+    const frameName = 'mos_order_post_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    frame = document.createElement('iframe');
+    frame.name = frameName;
+    frame.title = 'إرسال الطلب';
+    frame.hidden = true;
+    document.body.appendChild(frame);
+
+    form = document.createElement('form');
+    form.method = 'POST';
+    form.action = API_BASE;
+    form.target = frameName;
+    form.acceptCharset = 'UTF-8';
+    form.hidden = true;
+    const fields = {action:'submitOrder', payload:JSON.stringify(payload)};
+    Object.entries(fields).forEach(([name, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
+
+    for (let attempt = 0; attempt < 24; attempt += 1) {
+      await waitMs(attempt === 0 ? 900 : 800);
+      const result = await appsScriptJsonp('orderResult', {token});
+      if (result?.ok && result.order) return result;
+      if (result?.ok === false && !result.pending && result.error) throw new Error(result.error);
+    }
+    throw new Error('مش قادرين نأكد تسجيل الطلب حتى الآن. حدّث حالة الاتصال قبل ما تعيد المحاولة؛ نفس رمز الطلب بيمنع تكرار الخصم.');
+  } finally {
+    if (form) form.remove();
+    if (frame) setTimeout(() => frame.remove(), 1000);
+  }
+}
+
 async function request(path, options = {}) {
+  const method = String(options.method || 'GET').toUpperCase();
+  if (isAppsScriptApi()) {
+    if (path === '/api/storefront/catalog' && method === 'GET') return appsScriptJsonp('catalog');
+    if (path === '/api/storefront/orders' && method === 'POST') {
+      let payload = {};
+      try { payload = JSON.parse(options.body || '{}'); } catch (_) { throw new Error('بيانات الطلب غير صحيحة.'); }
+      return submitAppsScriptOrder(payload);
+    }
+    throw new Error('العملية المطلوبة غير مدعومة في واجهة Google Apps Script.');
+  }
   let response;
   try {
     response = await fetch(`${API_BASE}${path}`, {
@@ -55,7 +145,7 @@ async function request(path, options = {}) {
       headers:{'Content-Type':'application/json', ...(options.headers || {})}
     });
   } catch (_) {
-    throw new Error('مش قادرين نوصل لخادم الطلبات. اتأكد إن الـ API شغال وإن رابط الربط مضبوط.');
+    throw new Error('مش قادرين نوصل لخادم الطلبات. اتأكد إن رابط الـ API مضبوط.');
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok || data.ok === false) {
@@ -280,7 +370,7 @@ async function submitOrder(event) {
   try {
     const data = await request('/api/storefront/orders',{
       method:'POST',
-      body:JSON.stringify({...payload,idempotencyKey:state.attempt.key})
+      body:JSON.stringify({...payload,idempotencyKey:state.attempt.key,trackingToken:state.attempt.key})
     });
     const order = data.order;
     const orderTotal = Number(order.total_minor || 0);
@@ -289,10 +379,11 @@ async function submitOrder(event) {
     $('checkoutForm').reset();
     $('successOrderNo').textContent = order.order_no;
     $('successOrderTotal').textContent = money(orderTotal);
+    $('successTrackingToken').textContent = order.tracking_token || state.attempt?.key || '';
     $('trackPlacedOrder').onclick = () => {
       const target = new URL('./track-order.html',location.href);
       target.searchParams.set('order',order.order_no);
-      target.searchParams.set('phone',payload.customerPhone);
+      target.searchParams.set('token',order.tracking_token || state.attempt?.key || '');
       if (API_BASE) target.searchParams.set('api',API_BASE);
       location.href = target.href;
     };
