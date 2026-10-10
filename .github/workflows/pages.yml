@@ -23,6 +23,14 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+      - name: Validate storefront and Apps Script syntax
+        shell: bash
+        run: |
+          node --check site/storefront.js
+          node --check site/track-order.js
+          node --check site/store-sw.js
+          cp apps-script/Code.gs /tmp/marketos-apps-script.js
+          node --check /tmp/marketos-apps-script.js
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
