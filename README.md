@@ -8,20 +8,11 @@ After the GitHub Pages workflow finishes, the public static site is expected at:
 
 https://asalimrichvip.github.io/MarketOS-Online-Store/
 
-## Important: API connection required for real orders
+## Google Sheets-backed API
 
-GitHub Pages only serves static files. It does **not** run the MarketOS Node API or store live inventory/orders. The shop UI is published separately from the existing local backend.
+GitHub Pages hosts the public storefront only. The Sheets-backed API source is in `apps-script/Code.gs`; follow [the Arabic setup guide](apps-script/DEPLOYMENT_AR.md) to publish it as a Google Apps Script Web App and connect its `/exec` URL to the storefront.
 
-To connect a real, securely hosted API, open the storefront with an API base URL, for example:
-
-`https://asalimrichvip.github.io/MarketOS-Online-Store/?api=https://YOUR-HTTPS-API-HOST`
-
-The API must implement the MarketOS public storefront endpoints:
-- `GET /api/storefront/catalog`
-- `POST /api/storefront/orders`
-- `POST /api/storefront/order-status`
-
-The backend must use persistent storage, validate prices and quantities on the server, deduct stock transactionally, support idempotency, and allow only HTTPS production access. Never use a localhost URL for the public API.
+The `Settings.orders_enabled` value remains `FALSE` until testing is deliberately enabled. Before accepting customer orders, restrict spreadsheet sharing because Orders will contain customer contact and delivery details.
 
 ## Security boundaries
 
