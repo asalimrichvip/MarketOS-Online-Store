@@ -19,13 +19,13 @@
     </header>
 
     <main class="track-main">
-      <div class="track-intro"><span class="intro-kicker"><i></i> ORDER TRACKING</span><h1>طلبك فين دلوقتي؟</h1><p>اكتب رقم الطلب ورقم الموبايل اللي سجلت بيه، وهتشوف آخر حالة مؤكدة من المتجر.</p></div>
+      <div class="track-intro"><span class="intro-kicker"><i></i> ORDER TRACKING</span><h1>طلبك فين دلوقتي؟</h1><p>اكتب رقم الطلب ورمز المتابعة اللي ظهر بعد تسجيل الطلب، وهتشوف آخر حالة مؤكدة من المتجر.</p></div>
 
       <form id="trackForm" class="lookup-card">
         <label>رقم الطلب<input id="orderNumber" name="orderNumber" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" maxlength="40" placeholder="WEB-20261010-00001" required></label>
-        <label>رقم الموبايل<input id="trackingPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="01xxxxxxxxx" required></label>
+        <label>رمز متابعة الطلب<input id="trackingToken" name="token" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="100" minlength="20" placeholder="الصق رمز المتابعة الذي ظهر بعد الطلب" required></label>
         <button id="trackButton" class="track-submit" type="submit"><span>تتبع الطلب</span><strong>←</strong></button>
-        <p class="lookup-hint">رقم الطلب موجود في رسالة تأكيد الطلب اللي ظهرت بعد ما ضغطت «تأكيد الطلب».</p>
+        <p class="lookup-hint">رقم الطلب ورمز المتابعة بيظهروا في شاشة تأكيد الطلب. احتفظ بالرمز ولا تشاركه مع أي شخص.</p>
         <div id="trackMessage" class="track-message" role="status" aria-live="polite"></div>
       </form>
 
