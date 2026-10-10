@@ -1,0 +1,13 @@
+# Secrets and local data (never commit customer/order databases)
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite
+*.sqlite3
+*.db-wal
+*.db-shm
+backups/
+node_modules/
+.DS_Store
+Thumbs.db
