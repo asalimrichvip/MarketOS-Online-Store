@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#174f3e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="./store-manifest.webmanifest">
+  <meta name="description" content="اطلب احتياجات بيتك أونلاين بسهولة. حالة المخزون والأسعار تتحدث من المتجر مباشرة.">
+  <title>متجر البقالة | MarketOS</title>
+  <link rel="stylesheet" href="./storefront.css">
+</head>
+<body>
+  <div class="store-app">
+    <header class="store-header">
+      <a class="store-brand" href="./storefront.html" aria-label="الصفحة الرئيسية للمتجر">
+        <span class="brand-symbol" aria-hidden="true">د</span>
+        <span class="brand-copy"><strong id="storeName">متجر البقالة</strong><small>طلبات البيت في خطوات بسيطة</small></span>
+      </a>
+      <div class="header-info">
+        <span id="storeStatus" class="store-open-status"><i></i> بنستقبل الطلبات</span>
+        <a id="storePhoneLink" class="store-phone hidden" href="#checkout"></a>
+        <button id="refreshStore" class="icon-button" type="button" aria-label="تحديث المنتجات" title="تحديث المنتجات">↻</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <span class="hero-kicker">طلبك علينا</span>
+          <h1>كل اللي بيتك محتاجه<br><em>على باب البيت.</em></h1>
+          <p id="storeTagline">اختار احتياجاتك، راجع السلة، وإحنا نوصلهالك.</p>
+          <a class="hero-cta" href="#products">ابدأ التسوق <span aria-hidden="true">←</span></a>
+          <div class="hero-assurances"><span>✓ أسعار واضحة</span><span>✓ الدفع عند الاستلام</span><span>✓ مخزون محدث</span></div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+          <div class="grocery-bag"><span>🥬</span><span>🥖</span><span>🥛</span></div>
+          <span class="floating-item floating-orange">🍊</span><span class="floating-item floating-apple">🍎</span>
+          <span class="floating-item floating-leaf">🌿</span>
+        </div>
+      </section>
+
+      <section class="catalog-section" id="products">
+        <div class="catalog-heading">
+          <div><span class="section-kicker">قائمة المنتجات</span><h2>اختار اللي ناقصك</h2><p>حالة كل صنف بتتحدّث حسب المخزون الفعلي للفرع.</p></div>
+          <label class="search-box"><span aria-hidden="true">⌕</span><input id="productSearch" type="search" autocomplete="off" placeholder="بتدور على إيه؟" aria-label="ابحث في المنتجات"><kbd>بحث</kbd></label>
+        </div>
+        <div class="stock-filters" role="group" aria-label="تصفية المنتجات حسب التوفر">
+          <button type="button" class="filter-chip active" data-stock-filter="ALL">كل المنتجات</button>
+          <button type="button" class="filter-chip" data-stock-filter="IN_STOCK">متوفر</button>
+          <button type="button" class="filter-chip" data-stock-filter="LOW_STOCK">الكمية قربت تخلص</button>
+          <button type="button" class="filter-chip" data-stock-filter="OUT_OF_STOCK">نفد مؤقتًا</button>
+        </div>
+        <div id="storeMessage" class="store-message" role="status" aria-live="polite"></div>
+        <div class="store-layout">
+          <section class="product-area" aria-label="المنتجات المتاحة">
+            <div id="productGrid" class="store-product-grid"><div class="loading-card">بنجهزلك المنتجات…</div></div>
+          </section>
+          <aside class="cart-panel" id="checkout">
+            <div class="cart-title"><div><span class="section-kicker">سلتك</span><h2>طلبك</h2></div><span id="cartCount" class="cart-count">0 صنف</span></div>
+            <div id="cartItems" class="cart-items"><div class="empty-cart"><span>🛍️</span><strong>السلة لسه فاضية</strong><small>ضيف المنتجات اللي محتاجها وهتظهر هنا.</small></div></div>
+            <div class="cart-totals">
+              <div><span>قيمة المنتجات</span><strong id="cartSubtotal">EGP 0.00</strong></div>
+              <div><span>الضريبة</span><strong id="cartTax">EGP 0.00</strong></div>
+              <div><span>التوصيل</span><strong id="cartDelivery">EGP 0.00</strong></div>
+              <div class="total-row"><span>الإجمالي</span><strong id="cartTotal">EGP 0.00</strong></div>
+            </div>
+            <form id="checkoutForm" class="checkout-form">
+              <div class="checkout-heading"><h3>بيانات التوصيل</h3><span>خطوة واحدة وتخلص</span></div>
+              <label>الاسم بالكامل<input id="customerName" name="customerName" type="text" maxlength="100" autocomplete="name" placeholder="اسمك" required minlength="2"></label>
+              <label>رقم الموبايل<input id="customerPhone" name="customerPhone" type="tel" maxlength="30" autocomplete="tel" inputmode="tel" placeholder="01xxxxxxxxx" required></label>
+              <label>عنوان التوصيل بالتفصيل<textarea id="deliveryAddress" name="deliveryAddress" rows="2" maxlength="400" autocomplete="street-address" placeholder="المنطقة، الشارع، رقم العمارة والشقة" required minlength="8"></textarea></label>
+              <label>ملاحظات للطلب <span class="optional-label">اختياري</span><textarea id="customerNotes" name="customerNotes" rows="2" maxlength="500" placeholder="علامة مميزة أو أي تفاصيل تساعدنا"></textarea></label>
+              <div class="payment-note"><span aria-hidden="true">💵</span><div><strong>الدفع عند الاستلام</strong><small>هتدفع قيمة الطلب للمندوب وقت التوصيل.</small></div></div>
+              <button id="placeOrderButton" class="place-order-button" type="submit" disabled><span>تأكيد الطلب</span><strong id="submitTotal">EGP 0.00</strong></button>
+              <p class="privacy-note">بالضغط على تأكيد الطلب، بياناتك هتستخدم لتجهيز وتوصيل الطلب فقط.</p>
+            </form>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <footer class="store-footer"><a class="footer-brand" href="./storefront.html">MarketOS <span>·</span> متجر إلكتروني</a><span>تجربة تسوق بسيطة وواضحة</span><a href="./track-order.html">تابع طلبك</a><a href="#products">الرجوع للمنتجات ↑</a></footer>
+  </div>
+
+  <a id="mobileCartJump" class="mobile-cart-jump hidden" href="#checkout"><span>عرض السلة</span><strong id="mobileCartTotal">EGP 0.00</strong><em id="mobileCartCount">0</em></a>
+
+  <div id="orderSuccess" class="success-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="successTitle">
+    <div class="success-card"><div class="success-check" aria-hidden="true">✓</div><span class="section-kicker">تم استلام طلبك</span><h2 id="successTitle">طلبك وصلنا بنجاح!</h2><p>احتفظ برقم الطلب لمتابعته من الموبايل.</p><div class="success-order-number"><small>رقم الطلب</small><strong id="successOrderNo">WEB-00000</strong></div><div class="success-summary"><span>إجمالي الطلب</span><strong id="successOrderTotal">EGP 0.00</strong></div><button id="trackPlacedOrder" class="place-order-button" type="button">تابع حالة الطلب</button><button id="continueShopping" class="continue-shopping-button" type="button">كمّل تسوق</button></div>
+  </div>
+  <div id="storeToast" class="store-toast" role="status" aria-live="polite"></div>
+  <script src="./storefront.js" defer></script>
+  <script src="./store-pwa-register.js" defer></script>
+</body>
+</html>
