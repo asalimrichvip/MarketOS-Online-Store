@@ -5,6 +5,37 @@ const params = new URLSearchParams(location.search);
 const API_BASE = String(window.MARKETOS_API_BASE || params.get('api') || '').trim().replace(/\/+$/, '');
 const state = {lastQuery:null,lastOrder:null,loading:false,timer:null};
 
+function isAppsScriptApi() {
+  return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:$|\?)/i.test(API_BASE);
+}
+
+function appsScriptJsonp(action, values = {}) {
+  return new Promise((resolve, reject) => {
+    if (!isAppsScriptApi()) return reject(new Error('رابط Google Apps Script غير مضبوط.'));
+    const callback = '__mos_track_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    let settled = false;
+    const cleanup = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      script.remove();
+      try { delete window[callback]; } catch (_) { window[callback] = undefined; }
+    };
+    window[callback] = data => { cleanup(); resolve(data); };
+    const url = new URL(API_BASE);
+    url.searchParams.set('action', action);
+    url.searchParams.set('callback', callback);
+    url.searchParams.set('_', String(Date.now()));
+    Object.entries(values).forEach(([key, value]) => url.searchParams.set(key, String(value ?? '')));
+    const timer = setTimeout(() => { cleanup(); reject(new Error('انتهت مهلة الاتصال بخادم Google.')); }, 18000);
+    script.async = true;
+    script.onerror = () => { cleanup(); reject(new Error('تعذر الاتصال بخادم Google Apps Script. راجع رابط النشر.')); };
+    script.src = url.toString();
+    document.head.appendChild(script);
+  });
+}
+
 const STATUS_FLOW = [
   {status:'NEW',title:'استلمنا طلبك',description:'طلبك اتسجل، وفريق المتجر هيراجعه ويأكد التفاصيل.',icon:'✓'},
   {status:'CONFIRMED',title:'تم تأكيد الطلب',description:'المتجر راجع طلبك وبدأ يجهز الخطوة اللي بعد كده.',icon:'✓'},
@@ -77,15 +108,21 @@ function renderOrder(order) {
 async function lookupOrder({silent=false}={}) {
   if(state.loading)return;
   const orderNo=$('orderNumber').value.trim().toUpperCase();
-  const phone=$('trackingPhone').value.trim();
-  if(!orderNo || phone.replace(/\D/g,'').length<8){setMessage('اكتب رقم الطلب ورقم الموبايل بشكل صحيح.',true);return;}
-  state.lastQuery={orderNo,phone};
+  const token=$('trackingToken').value.trim();
+  if(!orderNo || token.length<20){setMessage('اكتب رقم الطلب ورمز المتابعة بشكل صحيح.',true);return;}
+  state.lastQuery={orderNo,token};
   state.loading=true;$('trackButton').disabled=true;$('refreshTracking').disabled=true;
   if(!silent)setMessage('بندور على طلبك…');
   try{
-    const response=await fetch(`${API_BASE}/api/storefront/order-status`,{method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',credentials:'omit',body:JSON.stringify({orderNo,phone})});
-    const result=await response.json().catch(()=>({}));
-    if(!response.ok || !result.ok)throw new Error(result.error||'مش قادرين نجيب حالة الطلب دلوقتي.');
+    let result;
+    if(isAppsScriptApi()) {
+      result=await appsScriptJsonp('track',{orderNo,token});
+    } else {
+      const response=await fetch(`${API_BASE}/api/storefront/order-status`,{method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',credentials:'omit',body:JSON.stringify({orderNo,token})});
+      result=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(result.error||'مش قادرين نجيب حالة الطلب دلوقتي.');
+    }
+    if(!result.ok)throw new Error(result.error||'مش قادرين نجيب حالة الطلب دلوقتي.');
     renderOrder(result.order);setMessage('تم تحديث حالة الطلب من بيانات المتجر.');
   }catch(error){
     if(!silent){$('trackingResult').classList.add('hidden');setMessage(error.message||'حصل خطأ أثناء البحث.',true);}
@@ -106,6 +143,10 @@ if(params.get('api')) {
   });
 }
 if(params.get('order'))$('orderNumber').value=params.get('order').trim().toUpperCase();
-if(params.get('phone'))$('trackingPhone').value=params.get('phone');
-fetch(`${API_BASE}/api/storefront/catalog`,{cache:'no-store'}).then(response=>response.ok?response.json():null).then(data=>{if(data?.store?.name)$('trackStoreName').textContent=data.store.name;}).catch(()=>{});
-if($('orderNumber').value && $('trackingPhone').value) lookupOrder();
+if(params.get('token'))$('trackingToken').value=params.get('token');
+if(isAppsScriptApi()) {
+  appsScriptJsonp('catalog').then(data=>{if(data?.store?.name)$('trackStoreName').textContent=data.store.name;}).catch(()=>{});
+} else {
+  fetch(`${API_BASE}/api/storefront/catalog`,{cache:'no-store'}).then(response=>response.ok?response.json():null).then(data=>{if(data?.store?.name)$('trackStoreName').textContent=data.store.name;}).catch(()=>{});
+}
+if($('orderNumber').value && $('trackingToken').value) lookupOrder();
