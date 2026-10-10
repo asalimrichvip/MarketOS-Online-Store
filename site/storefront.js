@@ -293,6 +293,7 @@ async function submitOrder(event) {
       const target = new URL('./track-order.html',location.href);
       target.searchParams.set('order',order.order_no);
       target.searchParams.set('phone',payload.customerPhone);
+      if (API_BASE) target.searchParams.set('api',API_BASE);
       location.href = target.href;
     };
     $('orderSuccess').classList.remove('hidden');
