@@ -265,9 +265,9 @@ function createPublicOrder_(payload) {
     preparedItems.forEach(function (item) {
       if (!item.stockEntry) return;
       const newQty = item.stockBefore - item.qty;
+      changedStock.push({ row: item.stockEntry.row, oldQty: item.stockBefore, oldUpdatedAt: item.stockEntry.data.updated_at });
       inventorySheet.getRange(item.stockEntry.row, inventoryTable.headers.indexOf('quantity_on_hand') + 1).setValue(newQty);
       inventorySheet.getRange(item.stockEntry.row, inventoryTable.headers.indexOf('updated_at') + 1).setValue(now);
-      changedStock.push({ row: item.stockEntry.row, oldQty: item.stockBefore, oldUpdatedAt: item.stockEntry.data.updated_at });
     });
 
     appendObjectRow_(ordersSheet, orderRecord);
