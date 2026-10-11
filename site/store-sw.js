@@ -1,4 +1,4 @@
-const CACHE_NAME = 'marketos-store-shell-v3';
+const CACHE_NAME = 'marketos-store-shell-v4';
 const APP_SHELL = [
   './',
   './index.html',
