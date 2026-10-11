@@ -272,8 +272,8 @@ function renderCart() {
   $('mobileCartTotal').textContent = money(totals.total);
   $('mobileCartCount').textContent = qtyText(count);
   $('mobileCartJump').classList.toggle('hidden',!items.length);
-  $('placeOrderButton').disabled = !items.length || state.submitting || !state.store?.isOpen;
-  $('placeOrderButton').querySelector('span').textContent = state.submitting ? 'بنسجل طلبك…' : state.store && !state.store.isOpen ? 'الطلبات مقفولة حاليًا' : 'تأكيد الطلب';
+  $('placeOrderButton').disabled = !items.length || state.submitting || !state.store?.isOpen || !state.store?.ordersEnabled;
+  $('placeOrderButton').querySelector('span').textContent = state.submitting ? 'بنسجل طلبك…' : !state.store?.isOpen ? 'الطلبات مقفولة حاليًا' : state.store && !state.store.ordersEnabled ? 'الطلبات هتتاح قريبًا' : 'تأكيد الطلب';
 }
 
 function addToCart(productId, change = 1) {
@@ -303,8 +303,9 @@ function updateStoreHeader() {
   $('storeName').textContent = store.name || 'متجر البقالة';
   $('storeTagline').textContent = store.tagline || 'اختار احتياجاتك، راجع السلة، وإحنا نوصلهالك.';
   const status = $('storeStatus');
-  status.classList.toggle('closed',!store.isOpen);
-  status.innerHTML = `<i></i>${store.isOpen ? 'بنستقبل الطلبات' : 'الطلبات مقفولة مؤقتًا'}`;
+  const acceptingOrders = Boolean(store.isOpen && store.ordersEnabled);
+  status.classList.toggle('closed',!acceptingOrders);
+  status.innerHTML = `<i></i>${acceptingOrders ? 'بنستقبل الطلبات' : !store.isOpen ? 'الطلبات مقفولة مؤقتًا' : 'المتجر تحت التجهيز'}`;
   if (store.phone) {
     const phoneLink = $('storePhoneLink');
     phoneLink.href = `tel:${String(store.phone).replace(/[^\d+]/g,'')}`;
@@ -312,6 +313,7 @@ function updateStoreHeader() {
     phoneLink.classList.remove('hidden');
   }
   if (!store.isOpen) setMessage('المتجر قافل استقبال الطلبات مؤقتًا. تقدر تتصفح المنتجات وترجع تجرب بعدين.');
+  else if (!store.ordersEnabled) setMessage('المنتجات متاحة للتصفح والاختبار، واستقبال الطلبات هيتفتح بعد اكتمال التجهيز.');
   else setMessage('');
 }
 
@@ -348,6 +350,7 @@ async function submitOrder(event) {
   event.preventDefault();
   if (state.submitting) return;
   if (!state.store?.isOpen) return toast('الطلبات مقفولة حاليًا.',true);
+  if (!state.store?.ordersEnabled) return toast('استقبال الطلبات غير مفعل أثناء اختبار المتجر.',true);
   if (!state.cart.size) return toast('ضيف منتج واحد على الأقل للسلة.',true);
   const phone = $('customerPhone').value.trim();
   if (phone.replace(/\D/g,'').length < 8) return toast('راجع رقم الموبايل واكتبه بشكل صحيح.',true);
